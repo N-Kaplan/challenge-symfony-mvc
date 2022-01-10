@@ -3,8 +3,12 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use App\Entity\User;
 
 class LearningController extends AbstractController
 {
@@ -13,6 +17,24 @@ class LearningController extends AbstractController
     {
         return $this->render('learning/index.html.twig', [
             'controller_name' => 'LearningController',
+        ]);
+    }
+
+    #[Route('/homepage', name: 'homepage')]
+    public function showMyName(Request $request): Response
+    {
+        $user = new User();
+        $user->setName('Unknown');
+        $form = $this->createFormBuilder($user)
+            ->add('name', TextType::class)
+            ->add('save', SubmitType::class, ['label' => 'Submit'])
+            ->getForm();
+
+        $form->handleRequest($request);
+
+        return $this->renderForm('learning/homepage.html.twig', [
+            'name' => $user->getName(),
+            'form' => $form
         ]);
     }
 
