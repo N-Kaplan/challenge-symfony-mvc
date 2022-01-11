@@ -21,13 +21,41 @@ class LearningController extends AbstractController
         $this->requestStack = $requestStack;
     }
 
-    #[Route('/learning', name: 'learning')]
-    public function index(): Response
-    {
-        return $this->render('learning/index.html.twig', [
-            'controller_name' => 'LearningController',
+    #[Route('/', name: 'homepage')]
+    #[Route('/change-my-name', name: 'changeMyName', methods: ['POST'])]
+    public function changeMyName(RequestStack $requestStack): Response {
+        $session = $requestStack->getSession();
+        $user = new User();
+
+        if ($session->get('name')) {
+            $user->setName($session->get('name'));
+        } else {
+            $user->setName("Unknown");
+        }
+
+        $form = $this->createFormBuilder($user)
+            ->setAction($this->generateUrl('changeMyName'))
+            ->setMethod('POST')
+            ->add('name', TextType::class)
+            ->add('save', SubmitType::class, ['label' => 'Submit'])
+            ->getForm();
+
+        $form->handleRequest($requestStack->getCurrentRequest());
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user = $form->getData();
+            $session->set('name', $user->getName());
+            return $this->redirectToRoute('homepage');
+        }
+
+        return $this->renderForm('learning/homepage.html.twig', [
+            'form' => $form,
+            'name' => $session->get('name'),
         ]);
     }
+
+
+
 
 //    #[Route('/', name: 'homepage')]
 //    public function showMyName(Request $request): Response
@@ -48,51 +76,51 @@ class LearningController extends AbstractController
 //    }
 
 
-    #[Route('/', name: 'homepage')]
-    #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
-    public function showMyName(Request $request): Response
-    {
-        $user = new User();
-        $session = $this->requestStack->getSession();
-
-        $name = $session->get('name', 'Unknown');
-        $user->setName($name);
-
-        $form = $this->createFormBuilder($user)
-            ->setAction($this->generateUrl('changeMyName'))
-            ->setMethod('POST')
-            ->add('name', TextType::class)
-            ->add('save', SubmitType::class, ['label' => 'Submit'])
-            ->getForm();
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $user = $form->getData();
-            $session->set('name', $user->getName());
-
-            return $this->redirectToRoute('homepage');
-        }
-
-        return $this->renderForm('learning/homepage.html.twig', [
-            'name' => $user->getName(),
-            'form' => $form
-        ]);
-    }
-
-//     https://symfony.com/doc/current/routing.html#creating-routes-as-attributes-or-annotations
-    #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
-    public function changeMyName(): Response
-    {
-        $request = $this->requestStack->getCurrentRequest();
-//        $request->set('name', $user->getName());
-
-        var_dump($request->request);
-        // stores an attribute in the session for later reuse
-//        $session->set('name', $user->getName());
-
-        return $this->redirectToRoute('homepage');
-    }
+//    #[Route('/', name: 'homepage')]
+//    #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
+//    public function showMyName(Request $request): Response
+//    {
+//        $user = new User();
+//        $session = $this->requestStack->getSession();
+//
+//        $name = $session->get('name', 'Unknown');
+//        $user->setName($name);
+//
+//        $form = $this->createFormBuilder($user)
+//            ->setAction($this->generateUrl('changeMyName'))
+//            ->setMethod('POST')
+//            ->add('name', TextType::class)
+//            ->add('save', SubmitType::class, ['label' => 'Submit'])
+//            ->getForm();
+//
+//        $form->handleRequest($request);
+//
+//        if ($form->isSubmitted() && $form->isValid()) {
+//            $user = $form->getData();
+//            $session->set('name', $user->getName());
+//
+//            return $this->redirectToRoute('homepage');
+//        }
+//
+//        return $this->renderForm('learning/homepage.html.twig', [
+//            'name' => $user->getName(),
+//            'form' => $form
+//        ]);
+//    }
+//
+////     https://symfony.com/doc/current/routing.html#creating-routes-as-attributes-or-annotations
+//    #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
+//    public function changeMyName(): Response
+//    {
+//        $request = $this->requestStack->getCurrentRequest();
+////        $request->set('name', $user->getName());
+//
+//        var_dump($request->request);
+//        // stores an attribute in the session for later reuse
+////        $session->set('name', $user->getName());
+//
+//        return $this->redirectToRoute('homepage');
+//    }
 
 
     #[Route('/about-me', name: 'about-me')]
