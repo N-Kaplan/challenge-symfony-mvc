@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -12,6 +13,14 @@ use App\Entity\User;
 
 class LearningController extends AbstractController
 {
+    //requestStack saves session variables
+    private RequestStack $requestStack;
+
+    public function __construct(RequestStack $requestStack)
+    {
+        $this->requestStack = $requestStack;
+    }
+
     #[Route('/learning', name: 'learning')]
     public function index(): Response
     {
@@ -20,23 +29,47 @@ class LearningController extends AbstractController
         ]);
     }
 
-    #[Route('/homepage', name: 'homepage')]
+    #[Route('/', name: 'homepage')]
     public function showMyName(Request $request): Response
     {
         $user = new User();
-        $user->setName('Unknown');
+        $session = $this->requestStack->getSession();
+
+        $name = $session->get('name', 'Unknown');
+        $user->setName($name);
+
         $form = $this->createFormBuilder($user)
+            ->setAction($this->generateUrl('changeMyName'))
+            ->setMethod('POST')
             ->add('name', TextType::class)
             ->add('save', SubmitType::class, ['label' => 'Submit'])
             ->getForm();
 
         $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user = $form->getData();
+            return $this->changeMyName($user);
+        }
+
         return $this->renderForm('learning/homepage.html.twig', [
             'name' => $user->getName(),
             'form' => $form
         ]);
     }
+
+    // https://symfony.com/doc/current/routing.html#creating-routes-as-attributes-or-annotations
+    #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
+    public function changeMyName($user): Response
+    {
+        $session = $this->requestStack->getSession();
+
+        // stores an attribute in the session for later reuse
+        $session->set('name', $user->getName());
+
+        return $this->redirectToRoute('homepage');
+    }
+
 
     #[Route('/about-me', name: 'about-me')]
     public function aboutMe(): Response
