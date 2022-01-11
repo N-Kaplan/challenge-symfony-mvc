@@ -29,7 +29,27 @@ class LearningController extends AbstractController
         ]);
     }
 
+//    #[Route('/', name: 'homepage')]
+//    public function showMyName(Request $request): Response
+//    {
+//        $user = new User();
+//        $user->setName('Unknown');
+//        $form = $this->createFormBuilder($user)
+//            ->add('name', TextType::class)
+//            ->add('save', SubmitType::class, ['label' => 'Submit'])
+//            ->getForm();
+//
+//        $form->handleRequest($request);
+//
+//        return $this->renderForm('learning/homepage.html.twig', [
+//            'name' => $user->getName(),
+//            'form' => $form
+//        ]);
+//    }
+
+
     #[Route('/', name: 'homepage')]
+    #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
     public function showMyName(Request $request): Response
     {
         $user = new User();
@@ -49,7 +69,9 @@ class LearningController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $user = $form->getData();
-            return $this->changeMyName($user);
+            $session->set('name', $user->getName());
+
+            return $this->redirectToRoute('homepage');
         }
 
         return $this->renderForm('learning/homepage.html.twig', [
@@ -58,14 +80,16 @@ class LearningController extends AbstractController
         ]);
     }
 
-    // https://symfony.com/doc/current/routing.html#creating-routes-as-attributes-or-annotations
+//     https://symfony.com/doc/current/routing.html#creating-routes-as-attributes-or-annotations
     #[Route('/change-my-name', name: 'changeMyName', methods: 'POST')]
-    public function changeMyName($user): Response
+    public function changeMyName(): Response
     {
-        $session = $this->requestStack->getSession();
+        $request = $this->requestStack->getCurrentRequest();
+//        $request->set('name', $user->getName());
 
+        var_dump($request->request);
         // stores an attribute in the session for later reuse
-        $session->set('name', $user->getName());
+//        $session->set('name', $user->getName());
 
         return $this->redirectToRoute('homepage');
     }
