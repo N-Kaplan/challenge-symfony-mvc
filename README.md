@@ -12,6 +12,6 @@ Instructions [here](https://github.com/becodeorg/ANT-Lamarr-5.34/tree/main/3.The
     - handle request (which is a parameter): $form->handleRequest($request);
     - in twig file: {{form(form)}}
 
-### 11 Jan 20200: 
+### 11 Jan 2022: 
  - Main difficulty: separating changeMyName and showMyName methods.
      - Resolution: user Symfony's Form (terminal command: ```php bin/console make:form```) rather than CreateFormBuilder.
